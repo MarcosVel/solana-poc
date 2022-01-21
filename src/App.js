@@ -1,23 +1,39 @@
-import logo from './logo.svg';
 import './App.css';
+import * as solanaWeb3 from '@solana/web3.js';
+import * as web3 from '@solana/web3.js';
+import ConnectToPhantom from './components/connectPhantom';
 
 function App() {
+  // console.log(solanaWeb3);
+
+  (async () => {
+    // Connect to cluster
+    var connection = new web3.Connection(
+      web3.clusterApiUrl('devnet'),
+      'confirmed',
+    );
+
+    // Generate a new wallet keypair and airdrop SOL
+    var wallet = web3.Keypair.generate();
+
+    // var airdropSignature = await connection.requestAirdrop(
+    //   wallet.publicKey,
+    //   web3.LAMPORTS_PER_SOL,
+    // );
+
+    //wait for airdrop confirmation
+    // await connection.confirmTransaction(airdropSignature);
+
+    // get account info
+    // account data is bytecode that needs to be deserialized
+    // serialization and deserialization is program specic
+    let account = await connection.getAccountInfo(wallet.publicKey);
+    console.log(account);
+  })();
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <ConnectToPhantom />
     </div>
   );
 }
