@@ -9,7 +9,7 @@ import React, { useEffect, useState } from 'react';
 function ConnectToPhantom({ phantom }) {
   const [connected, setConnected] = useState(false);
   const [publicKey, setPublicKey] = useState(null);
-  
+
   const connection = new Connection(
     // clusterApiUrl('devnet'),
     clusterApiUrl('mainnet-beta'),
@@ -36,7 +36,7 @@ function ConnectToPhantom({ phantom }) {
   }
 
   const createTransferTransaction = async () => {
-    alert(publicKey)
+    // alert(publicKey)
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: publicKey,
@@ -88,9 +88,14 @@ function ConnectToPhantom({ phantom }) {
             Disconnect from Phantom
           </button>
           <br />
-          <button onClick={createTransferTransaction}>
-            Transfer
-          </button>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <button onClick={sendTransaction}>
+              Transfer
+            </button>
+            <button onClick={() => alert(phantom.publicKey)}>
+              Wallet
+            </button>
+          </div>
         </>
       );
     }
