@@ -2,20 +2,25 @@ import {
   Connection,
   clusterApiUrl,
   Transaction,
-  SystemProgram
+  SystemProgram,
+  Keypair,
+  LAMPORTS_PER_SOL,
+  sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import React, { useEffect, useState } from 'react';
 
 function ConnectToPhantom({ phantom }) {
+  // https://github.com/cryptorustacean/phantom-wallet-example/blob/main/components/ConnectToPhantom.tsx
   const [connected, setConnected] = useState(false);
   const [publicKey, setPublicKey] = useState(null);
 
   const connection = new Connection(
-    // clusterApiUrl('devnet'),
-    clusterApiUrl('mainnet-beta'),
+    clusterApiUrl('devnet'),
+    // clusterApiUrl('mainnet-beta'),
     'confirmed',
   );
 
+  // https://github.com/phantom-labs/sandbox/blob/main/src/App.tsx
   const connectHandler = async () => {
     try {
       const resp = await window.solana.connect();
@@ -72,6 +77,62 @@ function ConnectToPhantom({ phantom }) {
     }
   }
 
+  // https://github.com/solana-labs/solana/tree/master/web3.js/examples
+  // const sendTransaction = async () => {
+  //   // Generate a new random public key
+  //   var from = Keypair.generate();
+  //   var airdropSignature = await connection.requestAirdrop(
+  //     from.publicKey,
+  //     LAMPORTS_PER_SOL,
+  //   );
+  //   await connection.confirmTransaction(airdropSignature);
+
+  //   // Generate a new random public key
+  //   var to = Keypair.generate();
+
+  //   // Add transfer instruction to transaction
+  //   var transaction = new Transaction().add(
+  //     SystemProgram.transfer({
+  //       fromPubkey: from.publicKey,
+  //       toPubkey: to.publicKey,
+  //       lamports: LAMPORTS_PER_SOL / 100,
+  //     }),
+  //   );
+
+  //   // Sign transaction, broadcast, and confirm
+  //   var signature = await sendAndConfirmTransaction(
+  //     connection,
+  //     transaction,
+  //     [from],
+  //   );
+  //   console.log('SIGNATURE', signature);
+  // }
+
+  const accountInfoHandler = async () => {
+    let wallet = Keypair.generate();
+    let account = await connection.getAccountInfo(wallet.publicKey);
+    console.log(wallet.publicKey);
+    console.log(account);
+  }
+
+  const airdropHandler = async () => {
+    // Generate a new wallet keypair and airdrop SOL
+    var wallet = Keypair.generate();
+    var airdropSignature = await connection.requestAirdrop(
+      wallet.publicKey,
+      LAMPORTS_PER_SOL,
+    );
+
+    //wait for airdrop confirmation
+    await connection.confirmTransaction(airdropSignature);
+
+    // get account info
+    // account data is bytecode that needs to be deserialized
+    // serialization and deserialization is program specic
+    let account = await connection.getAccountInfo(wallet.publicKey);
+    console.log(account);
+  }
+
   useEffect(() => {
     if (connected === false) {
       setConnected(true)
@@ -92,8 +153,14 @@ function ConnectToPhantom({ phantom }) {
             <button onClick={sendTransaction}>
               Transfer
             </button>
-            <button onClick={() => alert(phantom.publicKey)}>
+            {/* <button onClick={() => alert(phantom.publicKey)}>
               Wallet
+            </button> */}
+            <button onClick={accountInfoHandler}>
+              Account info
+            </button>
+            <button onClick={airdropHandler}>
+              Airdrop
             </button>
           </div>
         </>
