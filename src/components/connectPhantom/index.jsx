@@ -1,6 +1,5 @@
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import {
-  Connection,
-  clusterApiUrl,
   Transaction,
   SystemProgram,
   Keypair,
@@ -9,7 +8,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
-function ConnectToPhantom({ phantom }) {
+function ConnectToPhantom({ phantom, connection }) {
   // https://github.com/cryptorustacean/phantom-wallet-example/blob/main/components/ConnectToPhantom.tsx
   const [connected, setConnected] = useState(false);
   const [publicKey, setPublicKey] = useState(null);
@@ -17,12 +16,6 @@ function ConnectToPhantom({ phantom }) {
   const loadingToast = () => {
     toast.loading('Carregando...');
   }
-
-  const connection = new Connection(
-    clusterApiUrl('devnet'),
-    // clusterApiUrl('mainnet-beta'),
-    'confirmed',
-  );
 
   // https://github.com/phantom-labs/sandbox/blob/main/src/App.tsx
   const connectHandler = async () => {
@@ -141,9 +134,11 @@ function ConnectToPhantom({ phantom }) {
       //wait for airdrop confirmation
       await connection.confirmTransaction(airdropSignature);
 
-      // get account info
-      // account data is bytecode that needs to be deserialized
-      // serialization and deserialization is program specic
+      /**
+        * get account info
+        * account data is bytecode that needs to be deserialized
+        * serialization and deserialization is program specic
+        */
       let account = await connection.getAccountInfo(wallet.publicKey);
       console.log(account);
 
@@ -167,6 +162,7 @@ function ConnectToPhantom({ phantom }) {
     if (connected === true) {
       return (
         <>
+
           <button onClick={disconnectHandler}>
             Disconnect from Phantom
           </button>
@@ -175,9 +171,6 @@ function ConnectToPhantom({ phantom }) {
             <button onClick={sendTransaction}>
               Transfer
             </button>
-            {/* <button onClick={() => alert(phantom.publicKey)}>
-              Wallet
-            </button> */}
             <button onClick={accountInfoHandler}>
               Account info
             </button>
@@ -185,16 +178,19 @@ function ConnectToPhantom({ phantom }) {
               Airdrop
             </button>
           </div>
+
         </>
       );
     }
 
     return (
-      <button
-        onClick={connectHandler}
-      >
-        Connect to Phantom
-      </button>
+      <>
+        <h3>Only Phantom</h3>
+        <button onClick={connectHandler}>Connect to Phantom</button>
+        <br />
+        <h3>Others & Phantom</h3>
+        <WalletMultiButton />
+      </>
     );
   }
 
