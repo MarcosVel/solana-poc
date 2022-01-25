@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 import ConnectToPhantom from './components/connectPhantom';
 
@@ -13,6 +15,7 @@ function App() {
 
   return (
     <div className="App">
+      <ToastContainer autoClose={3000} theme='dark' position="bottom-right" />
       <ConnectToPhantom phantom={phantom} />
     </div>
   );

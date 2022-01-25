@@ -5,14 +5,18 @@ import {
   SystemProgram,
   Keypair,
   LAMPORTS_PER_SOL,
-  sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import React, { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 function ConnectToPhantom({ phantom }) {
   // https://github.com/cryptorustacean/phantom-wallet-example/blob/main/components/ConnectToPhantom.tsx
   const [connected, setConnected] = useState(false);
   const [publicKey, setPublicKey] = useState(null);
+
+  const loadingToast = () => {
+    toast.loading('Carregando...');
+  }
 
   const connection = new Connection(
     clusterApiUrl('devnet'),
@@ -41,7 +45,6 @@ function ConnectToPhantom({ phantom }) {
   }
 
   const createTransferTransaction = async () => {
-    // alert(publicKey)
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: publicKey,
@@ -56,9 +59,6 @@ function ConnectToPhantom({ phantom }) {
       await connection.getRecentBlockhash()
     ).blockhash;
     return transaction;
-
-    // const { signature } = await window.solana.signAndSendTransaction(transaction);
-    // await connection.confirmTransaction(signature);
   }
 
   const sendTransaction = async () => {
@@ -69,11 +69,21 @@ function ConnectToPhantom({ phantom }) {
       console.log('Got signature, submitting transaction');
       let signature = await connection.sendRawTransaction(signed.serialize());
       console.log("Submitted transaction " + signature + ", awaiting confirmation");
+      loadingToast();
       await connection.confirmTransaction(signature);
       console.log("Transaction " + signature + " confirmed");
+
+      const linkTransaction = () => (
+        <div>
+          <span>Transação <a href={`https://explorer.solana.com/tx/${signature}?cluster=devnet`} target="_blank" re='noopener noreferrer' style={{ color: 'white' }}>detalhes</a></span>
+        </div>
+      )
+      toast.dismiss(loadingToast());
+      toast.success(linkTransaction)
     } catch (err) {
       console.warn(err);
       console.log("[error] sendTransaction: " + JSON.stringify(err));
+      toast.error('Transação cancelada')
     }
   }
 
@@ -110,27 +120,39 @@ function ConnectToPhantom({ phantom }) {
 
   const accountInfoHandler = async () => {
     let wallet = Keypair.generate();
-    let account = await connection.getAccountInfo(wallet.publicKey);
+    // let account = await connection.getAccountInfo(wallet.publicKey);
     console.log(wallet.publicKey);
-    console.log(account);
+    // console.log(account);
+    console.log(publicKey.toString());
+    navigator.clipboard.writeText(publicKey.toString());
+    toast.success('Address copiado')
   }
 
   const airdropHandler = async () => {
-    // Generate a new wallet keypair and airdrop SOL
-    var wallet = Keypair.generate();
-    var airdropSignature = await connection.requestAirdrop(
-      wallet.publicKey,
-      LAMPORTS_PER_SOL,
-    );
+    try {
+      loadingToast();
+      // Generate a new wallet keypair and airdrop SOL
+      var wallet = Keypair.generate();
+      var airdropSignature = await connection.requestAirdrop(
+        wallet.publicKey,
+        LAMPORTS_PER_SOL,
+      );
 
-    //wait for airdrop confirmation
-    await connection.confirmTransaction(airdropSignature);
+      //wait for airdrop confirmation
+      await connection.confirmTransaction(airdropSignature);
 
-    // get account info
-    // account data is bytecode that needs to be deserialized
-    // serialization and deserialization is program specic
-    let account = await connection.getAccountInfo(wallet.publicKey);
-    console.log(account);
+      // get account info
+      // account data is bytecode that needs to be deserialized
+      // serialization and deserialization is program specic
+      let account = await connection.getAccountInfo(wallet.publicKey);
+      console.log(account);
+
+      toast.dismiss(loadingToast());
+      toast.success('Sucesso no Airdrop')
+    }
+    catch (err) {
+      toast.error('Erro no Airdrop')
+    }
   }
 
   useEffect(() => {
